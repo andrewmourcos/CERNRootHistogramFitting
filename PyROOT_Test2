@@ -1,0 +1,31 @@
+#!/bin/env python
+import ROOT
+from ROOT import gPad, TH2F, Double, TF2, TF1
+data ="/afs/cern.ch/user/d/daquser/work/public/2017_cc/alignment"
+
+filething = "pmt_samples.root"
+tdirecname = "sig_pmt"
+f_in= ROOT.TFile.Open(data+"/"+filething)
+amplitude_tree = f_in.Get(tdirecname)
+tree_array_time= []
+tree_array_amplitude= []
+num = 0
+
+for thing in amplitude_tree:
+  for i in thing.time:
+    tree_array_time.append(i)
+
+  for d in thing.amplitude:
+    tree_array_amplitude.append(d)
+
+n_entries= len(tree_array_time)
+
+myhistogram = TH2F('h2', 'cool_histogram',1000,-5e-8,15e-8,1000,-2.5, 0.5)
+for i in xrange(n_entries):
+  myhistogram.Fill(tree_array_time[i], tree_array_amplitude[i])
+
+function = TF1("function", "[0]*exp((-x/[1])+[2]*exp(-x/[3]))", -4e-8, 14e-8)
+myhistogram.Fit(function,'','')
+
+myhistogram.Draw()
+gPad.WaitPrimitive()
